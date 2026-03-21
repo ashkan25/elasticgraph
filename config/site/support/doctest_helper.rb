@@ -9,6 +9,7 @@
 require "elastic_graph/apollo/schema_definition/api_extension"
 require "elastic_graph/schema_artifacts/runtime_metadata/schema_element_names"
 require "elastic_graph/schema_definition/api"
+require "elastic_graph/schema_definition/extension_module_support"
 require "elastic_graph/schema_definition/schema_artifact_manager"
 require "elastic_graph/warehouse/schema_definition/api_extension"
 require "rspec/mocks"
@@ -60,7 +61,9 @@ module ElasticGraph
         @api = SchemaDefinition::API.new(
           SchemaArtifacts::RuntimeMetadata::SchemaElementNames.new(form: :camelCase, overrides: {}),
           true,
-          extension_modules: extension_modules
+          extension_modules: SchemaDefinition::ExtensionModuleSupport.build_api_extension_modules(
+            extension_modules: extension_modules
+          )
         )
 
         # This is required in all schemas, but we don't want to have to put in all our examples,

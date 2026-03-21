@@ -7,8 +7,10 @@
 # frozen_string_literal: true
 
 require "elastic_graph/errors"
+require "elastic_graph/schema_artifacts/from_disk"
 require "elastic_graph/schema_artifacts/runtime_metadata/schema_element_names"
 require "elastic_graph/schema_definition/api"
+require "elastic_graph/schema_definition/extension_module_support"
 require "elastic_graph/schema_definition/schema_artifact_manager"
 
 module ElasticGraph
@@ -25,6 +27,7 @@ module ElasticGraph
         index_document_sizes: true,
         json_schema_version: 1,
         extension_modules: [],
+        ingestion_serializer_extension_modules: ExtensionModuleSupport.default_ingestion_serializer_extension_modules,
         derived_type_name_formats: {},
         type_name_overrides: {},
         enum_value_overrides_by_type: {},
@@ -42,6 +45,7 @@ module ElasticGraph
           index_document_sizes: index_document_sizes,
           json_schema_version: json_schema_version,
           extension_modules: extension_modules,
+          ingestion_serializer_extension_modules: ingestion_serializer_extension_modules,
           derived_type_name_formats: derived_type_name_formats,
           type_name_overrides: type_name_overrides,
           enum_value_overrides_by_type: enum_value_overrides_by_type,
@@ -56,6 +60,7 @@ module ElasticGraph
         index_document_sizes: true,
         json_schema_version: 1,
         extension_modules: [],
+        ingestion_serializer_extension_modules: ExtensionModuleSupport.default_ingestion_serializer_extension_modules,
         derived_type_name_formats: {},
         type_name_overrides: {},
         enum_value_overrides_by_type: {},
@@ -65,7 +70,10 @@ module ElasticGraph
         api = API.new(
           schema_elements,
           index_document_sizes,
-          extension_modules: extension_modules,
+          extension_modules: ExtensionModuleSupport.build_api_extension_modules(
+            extension_modules: extension_modules,
+            ingestion_serializer_extension_modules: ingestion_serializer_extension_modules
+          ),
           derived_type_name_formats: derived_type_name_formats,
           type_name_overrides: type_name_overrides,
           enum_value_overrides_by_type: enum_value_overrides_by_type,
@@ -75,7 +83,7 @@ module ElasticGraph
         yield api if block_given?
 
         # Set the json_schema_version to the provided value, if needed.
-        if !json_schema_version.nil? && api.state.json_schema_version.nil?
+        if api.respond_to?(:json_schema_version) && !json_schema_version.nil? && api.state.json_schema_version.nil?
           api.json_schema_version json_schema_version
         end
 

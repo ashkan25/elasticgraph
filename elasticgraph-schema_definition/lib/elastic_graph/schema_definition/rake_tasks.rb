@@ -8,6 +8,7 @@
 
 require "rake/tasklib"
 require "elastic_graph/schema_artifacts/runtime_metadata/schema_element_names"
+require "elastic_graph/schema_definition/extension_module_support"
 
 module ElasticGraph
   module SchemaDefinition
@@ -41,6 +42,9 @@ module ElasticGraph
       #   specific enum types. For example, to rename the `DayOfWeek.MONDAY` enum to `DayOfWeek.MON`, pass `{DayOfWeek: {MONDAY: "MON"}}`.
       # @param extension_modules [Array<Module>] List of Ruby modules to extend onto the `SchemaDefinition::API` instance. Designed to
       #   support ElasticGraph extension gems (such as `elasticgraph-apollo`).
+      # @param ingestion_serializer_extension_modules [Array<Module>] List of Ruby modules implementing the ingestion serializer API.
+      #   Defaults to the built-in JSON Schema serializer for backward compatibility, but can be set to `[]` to disable it or replaced
+      #   with a different serializer extension.
       # @param enforce_json_schema_version [Boolean] Whether or not to enforce the requirement that the JSON schema version is incremented
       #   every time dumping the JSON schemas results in a changed artifact. Generally speaking, you will want this to be `true` for any
       #   ElasticGraph application that is in production as the versioning of JSON schemas is what supports safe schema evolution as it
@@ -117,6 +121,7 @@ module ElasticGraph
         type_name_overrides: {},
         enum_value_overrides_by_type: {},
         extension_modules: [],
+        ingestion_serializer_extension_modules: ExtensionModuleSupport.default_ingestion_serializer_extension_modules,
         enforce_json_schema_version: true,
         output: $stdout
       )
@@ -132,7 +137,10 @@ module ElasticGraph
         @path_to_schema = path_to_schema
         @schema_artifacts_directory = schema_artifacts_directory
         @enforce_json_schema_version = enforce_json_schema_version
-        @extension_modules = extension_modules
+        @extension_modules = ExtensionModuleSupport.build_api_extension_modules(
+          extension_modules: extension_modules,
+          ingestion_serializer_extension_modules: ingestion_serializer_extension_modules
+        )
         @output = output
 
         define_tasks

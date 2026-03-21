@@ -7,6 +7,7 @@
 # frozen_string_literal: true
 
 require "elastic_graph/errors"
+require "elastic_graph/json_schema/schema_definition/api_extension"
 require "elastic_graph/spec_support/have_readable_to_s_and_inspect_output"
 require_relative "graphql_schema_spec_support"
 
@@ -17,7 +18,11 @@ module ElasticGraph
 
       with_both_casing_forms do
         it "evaluates the given block against the active API instance, allowing `ElasticGraph.define_schema` to be used many times" do
-          api = API.new(schema_elements, true)
+          api = API.new(
+            schema_elements,
+            true,
+            extension_modules: [JsonSchema::SchemaDefinition::APIExtension]
+          )
 
           api.as_active_instance do
             ElasticGraph.define_schema do |schema|
@@ -47,6 +52,25 @@ module ElasticGraph
               id: ID
             }
           EOS
+        end
+
+        it "does not expose ingestion serializer APIs unless explicitly extended" do
+          api = API.new(schema_elements, true)
+
+          expect(api).not_to respond_to(:json_schema_version)
+          expect(api).not_to respond_to(:json_schema_strictness)
+          expect(api.results).not_to respond_to(:json_schemas_for)
+          expect(api.results).not_to respond_to(:available_json_schema_versions)
+        end
+
+        it "does not try to configure a JSON schema version when ingestion serializer extensions are disabled" do
+          expect {
+            define_schema(ingestion_serializer_extension_modules: []) do |schema|
+              schema.object_type("Widget") do |t|
+                t.field "id", "ID"
+              end
+            end
+          }.not_to raise_error
         end
 
         it "raises a clear error when there is no active API instance" do
