@@ -15,6 +15,7 @@ module ElasticGraph
       def merge_field_metadata_into_json_schema: (::Hash[::String, untyped]) -> Indexing::JSONSchemaWithMetadata
       def unused_deprecated_elements: () -> ::Set[SchemaElements::DeprecatedElement]
       def derived_indexing_type_names: () -> ::Set[::String]
+      def schema_artifact_types: () -> ::Array[SchemaElements::graphQLType]
 
       @graphql_schema_string: ::String?
       @datastore_config: ::Hash[::String, untyped]

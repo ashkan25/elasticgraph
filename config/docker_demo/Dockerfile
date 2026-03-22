@@ -19,6 +19,7 @@ COPY elasticgraph-indexer elasticgraph-indexer/
 COPY elasticgraph-json_schema elasticgraph-json_schema/
 COPY elasticgraph-local elasticgraph-local/
 COPY elasticgraph-opensearch elasticgraph-opensearch/
+COPY elasticgraph-protobuf elasticgraph-protobuf/
 COPY elasticgraph-query_registry elasticgraph-query_registry/
 COPY elasticgraph-rack elasticgraph-rack/
 COPY elasticgraph-schema_artifacts elasticgraph-schema_artifacts/
